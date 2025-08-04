@@ -1,17 +1,17 @@
-[![Docker](https://github.com/mrlt8/docker-wyze-bridge/actions/workflows/docker-image.yml/badge.svg)](https://github.com/mrlt8/docker-wyze-bridge/actions/workflows/docker-image.yml)
+[![Docker](https://github.com/daryllundy/docker-wyze-bridge/actions/workflows/docker-image.yml/badge.svg)](https://github.com/daryllundy/docker-wyze-bridge/actions/workflows/docker-image.yml)
 
 [![GitHub](https://img.shields.io/badge/GitHub-Primary-181717?logo=github)](https://github.com/daryllundy/docker-wyze-bridge) [![GitLab](https://img.shields.io/badge/GitLab-Mirror-FCA121?logo=gitlab)](https://gitlab.com/daryllundy/docker-wyze-bridge)
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mrlt8/docker-wyze-bridge?logo=github)](https://github.com/mrlt8/docker-wyze-bridge/releases/latest)
-[![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/mrlt8/wyze-bridge?sort=semver&logo=docker&logoColor=white)](https://hub.docker.com/r/mrlt8/wyze-bridge)
-[![Docker Pulls](https://img.shields.io/docker/pulls/mrlt8/wyze-bridge?logo=docker&logoColor=white)](https://hub.docker.com/r/mrlt8/wyze-bridge)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/daryllundy/docker-wyze-bridge?logo=github)](https://github.com/daryllundy/docker-wyze-bridge/releases/latest)
+[![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/daryllundy/wyze-bridge?sort=semver&logo=docker&logoColor=white)](https://hub.docker.com/r/daryllundy/wyze-bridge)
+[![Docker Pulls](https://img.shields.io/docker/pulls/daryllundy/wyze-bridge?logo=docker&logoColor=white)](https://hub.docker.com/r/daryllundy/wyze-bridge)
 
 # WebRTC/RTSP/RTMP/HLS Bridge for Wyze Cam
 
 ![479shots_so](https://user-images.githubusercontent.com/67088095/224595527-05242f98-c4ab-4295-b9f5-07051ced1008.png)
 
 
-Create a local WebRTC, RTSP, RTMP, or HLS/Low-Latency HLS stream for most of your Wyze cameras including the outdoor, doorbell, and 2K cams. 
+Create a local WebRTC, RTSP, RTMP, or HLS/Low-Latency HLS stream for most of your Wyze cameras including the outdoor, doorbell, and 2K cams.
 
 No third-party or special firmware required.
 
@@ -21,8 +21,9 @@ Streams direct from camera without additional bandwidth or subscriptions.
 
 Based on [@noelhibbard's script](https://gist.github.com/noelhibbard/03703f551298c6460f2fd0bfdbc328bd#file-readme-md) with [kroo/wyzecam](https://github.com/kroo/wyzecam) and [aler9/rtsp-simple-server](https://github.com/aler9/rtsp-simple-server).
 
+Forked from [mrlt8/docker-wyze-bridge](https://github.com/mrlt8/docker-wyze-bridge).
 
-Please consider ⭐️ starring or [☕️ sponsoring](https://ko-fi.com/mrlt8) this project if you found it useful, or use the [affiliate link](https://amzn.to/3NLnbvt) when shopping on amazon!
+Please consider ⭐️ starring this project if you found it useful!
 
 ## Quick Start
 
@@ -33,7 +34,7 @@ docker run \
   -e WYZE_EMAIL=you@email.com \
   -e WYZE_PASSWORD=yourpassw0rd \
   -p 1935:1935 -p 8554:8554 -p 8888:8888 -p 5000:5000 \
-  mrlt8/wyze-bridge:latest
+  daryllundy/wyze-bridge:latest
 ```
 
 You can then use the web interface at `http://localhost:5000` where localhost is the hostname or ip of the machine running the bridge.
@@ -151,7 +152,7 @@ The container can be run on its own, in [Portainer](https://github.com/mrlt8/doc
 This is similar to the docker run command, but will save all your options in a yaml file.
 
 1. Install [Docker Compose](https://docs.docker.com/compose/install/).
-2. Use the [sample](https://raw.githubusercontent.com/mrlt8/docker-wyze-bridge/main/docker-compose.sample.yml) as a guide to create a `docker-compose.yml` file with your wyze credentials.
+2. Use the [sample](https://raw.githubusercontent.com/daryllundy/docker-wyze-bridge/main/docker-compose.sample.yml) as a guide to create a `docker-compose.yml` file with your wyze credentials.
 3. Run `docker-compose up`.
 
 Once you're happy with your config you can use `docker-compose up -d` to run it in detached mode.
@@ -200,7 +201,7 @@ The web-ui can be accessed on the default port `5000`:
 http://localhost:5000/
 ```
 
-See also: 
+See also:
 * [WebUI page](https://github.com/mrlt8/docker-wyze-bridge/wiki/WebUI)
 * [WebUI API page](https://github.com/mrlt8/docker-wyze-bridge/wiki/WebUI-API)
 
