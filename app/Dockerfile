@@ -18,11 +18,23 @@ COPY *.lib /tmp/lib/
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /build/app /build/tokens /build/img \
+    && mkdir -p /build/app /build/tokens /build/img
+
+RUN set -x \
     && RTSP_TAG=$(curl -s https://api.github.com/repos/aler9/rtsp-simple-server/releases/latest | jq -r .tag_name) \
+    && echo "RTSP_TAG: $RTSP_TAG" \
     && echo -n $RTSP_TAG > /build/RTSP_TAG \
+    && if [ -z "$RTSP_TAG" ] || [ "$RTSP_TAG" = "null" ]; then echo "Failed to get RTSP tag"; exit 1; fi
+
+RUN set -x \
+    && RTSP_TAG=$(cat /build/RTSP_TAG) \
+    && echo "Downloading RTSP server version: $RTSP_TAG for arch: ${RTSP_ARCH:-amd64}" \
     && curl -L https://github.com/aler9/rtsp-simple-server/releases/download/${RTSP_TAG}/rtsp-simple-server_${RTSP_TAG}_linux_${RTSP_ARCH:-amd64}.tar.gz \
-    | tar xzf - -C /build/app \
+    | tar xzf - -C /build/app
+
+RUN set -x \
+    && ls -la /tmp/lib/ \
+    && echo "Copying library: ${LIB_ARCH:-amd}.lib" \
     && cp /tmp/lib/${LIB_ARCH:-amd}.lib /build/usr/local/lib/libIOTCAPIs_ALL.so \
     && rm -rf /tmp/*
 COPY . /build/app/
