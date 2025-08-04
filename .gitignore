@@ -8,3 +8,4 @@ totp
 tokens/
 *.pyc
 .history/
+.aider*
