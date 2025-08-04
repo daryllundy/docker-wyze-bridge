@@ -1,6 +1,6 @@
 ARG ARM
 ARG ARCH=${ARM:+arm32v7}
-FROM ${ARCH:-amd64}/python:3.11-slim-buster as base
+FROM ${ARCH:-amd64}/python:3.11-slim-bookworm as base
 
 FROM base as builder
 ENV PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive
