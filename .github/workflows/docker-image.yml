@@ -17,9 +17,17 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      DOCKERHUB_IMAGE: ${{ github.repository_owner }}/wyze-bridge
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Add lfs: true if your Dockerfiles copy LFS-tracked assets
+          # lfs: true
+          fetch-depth: 0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -29,6 +37,8 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          install: true
 
       - name: Login to Docker Hub
         if: github.event_name != 'pull_request'
@@ -43,6 +53,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
+          # GITHUB_TOKEN is fine for publishing within same org/repo when packages: write is granted
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker metadata (default)
@@ -50,31 +61,48 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository_owner }}/wyze-bridge
-            ghcr.io/${{ github.repository }}
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          # Generate at least one tag for every event type to avoid pushing with empty tags
           tags: |
-            type=schedule
-            type=semver,pattern={{version}}
-            type=edge,branch=main,enable=${{ github.event_name == 'push' }}
-            type=ref,event=branch,enable=${{ contains(github.ref, 'dev') }}
+            type=raw,value=edge,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
             type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=schedule
+          # Disable implicit latest creation here; we'll manage latest explicitly below
+          flavor: |
+            latest=false
 
       - name: Docker metadata (hwaccel)
         id: hwmeta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository_owner }}/wyze-bridge
-            ghcr.io/${{ github.repository }}
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          # Suffix -hw for all tags; do NOT claim latest to avoid collision
           flavor: |
-            latest=auto
-            suffix=-hw,onlatest=true
+            latest=false
+            suffix=-hw
           tags: |
-            type=schedule,suffix=-hw
-            type=semver,pattern={{version}},suffix=-hw
-            type=edge,branch=main,enable=${{ github.event_name == 'push' }},suffix=-hw
-            type=ref,event=branch,enable=${{ contains(github.ref, 'dev') }},suffix=-hw
+            type=raw,value=edge,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }},suffix=-hw
+            type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }},suffix=-hw
             type=ref,event=tag,suffix=-hw
+            type=semver,pattern={{version}},suffix=-hw
+            type=schedule,suffix=-hw
+
+      - name: Ensure tags exist (default)
+        run: |
+          if [ -z "${{ steps.meta.outputs.tags }}" ]; then
+            echo "No tags produced for default build"; exit 1;
+          fi
+
+      - name: Ensure tags exist (hwaccel)
+        run: |
+          if [ -z "${{ steps.hwmeta.outputs.tags }}" ]; then
+            echo "No tags produced for hwaccel build"; exit 1;
+          fi
 
       - name: Build and push (default)
         uses: docker/build-push-action@v6
@@ -87,6 +115,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Uncomment if registry rejects attestations
+          # provenance: false
 
       - name: Build and push (hwaccel)
         uses: docker/build-push-action@v6
@@ -99,3 +129,20 @@ jobs:
           labels: ${{ steps.hwmeta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # provenance: false
+
+      # Optional: manage "latest" explicitly for default image only on main
+      - name: Add latest tag and push manifest (default)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_IMAGE }}:latest
+            ${{ env.GHCR_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # provenance: false
