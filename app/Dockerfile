@@ -15,14 +15,15 @@ COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --upgrade --no-cache-dir pip \
     && pip3 install --disable-pip-version-check --no-cache-dir --prefix=/build/usr/local -r /tmp/requirements.txt
 COPY *.lib /tmp/lib/
-RUN mkdir -p /build/app /build/tokens /build/img \
-    && curl -L https://github.com/homebridge/ffmpeg-for-homebridge/releases/latest/download/ffmpeg-debian-${FFMPEG_ARCH:-x86_64}.tar.gz \
-    | tar xzf - -C /build \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /build/app /build/tokens /build/img \
     && RTSP_TAG=$(curl -s https://api.github.com/repos/aler9/rtsp-simple-server/releases/latest | jq -r .tag_name) \
     && echo -n $RTSP_TAG > /build/RTSP_TAG \
     && curl -L https://github.com/aler9/rtsp-simple-server/releases/download/${RTSP_TAG}/rtsp-simple-server_${RTSP_TAG}_linux_${RTSP_ARCH:-amd64}.tar.gz \
     | tar xzf - -C /build/app \
-    && cp /tmp/lib/${LIB_ARCH:-amd}.lib /build/usr/local/lib/libIOTCAPIs_ALL.so\
+    && cp /tmp/lib/${LIB_ARCH:-amd}.lib /build/usr/local/lib/libIOTCAPIs_ALL.so \
     && rm -rf /tmp/*
 COPY . /build/app/
 
